@@ -68,4 +68,8 @@ npm run build
 - 字段、状态、动作与流转目标集中在 `frontend/src/data/modules.ts`；示例数据在
   `frontend/src/data/seed.ts`。
 - 状态流转只允许在 `local-service.ts` 里改，页面组件不做业务判断。
+- 炉渣模块的专用规则（外运定位分页、热灼减率判定与结论留存、处理编号唯一约束、交接汇总）
+  放在 `frontend/src/api/slag-service.ts`；热灼减率限值 5%，结论在登记或旧数据首次读取时
+  写入记录，之后不再重算，历史批次按当时的结论保留。
 - 想回到初始数据：清掉浏览器里 `waste-to-energy-plant:entries` 这一项，或调用 `resetModule(模块)`。
+- 炉渣定位与交接联动的逻辑验证：`cd frontend && npm run verify`（tsc 编译后在 node 下跑断言）。

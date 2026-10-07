@@ -23,9 +23,30 @@ export function filterRows(rows: EntryRow[], filters: Record<string, string>): E
   )
 }
 
-export function listEntries(key: string, filters: Record<string, string> = {}): PageResult {
+export function paginateRows(rows: EntryRow[], page = 1, size = 20): PageResult {
+  const safeSize = Math.max(1, Math.floor(size))
+  const pageCount = Math.max(1, Math.ceil(rows.length / safeSize))
+  const safePage = Math.min(Math.max(1, Math.floor(page)), pageCount)
+  const start = (safePage - 1) * safeSize
+  return {
+    items: rows.slice(start, start + safeSize),
+    total: rows.length,
+    page: safePage,
+    size: safeSize,
+  }
+}
+
+export function listEntries(
+  key: string,
+  filters: Record<string, string> = {},
+  page?: number,
+  size?: number,
+): PageResult {
   const matched = filterRows(listRows(key), filters)
-  return { items: matched, total: matched.length, page: 1, size: matched.length }
+  if (page === undefined || size === undefined) {
+    return { items: matched, total: matched.length, page: 1, size: matched.length }
+  }
+  return paginateRows(matched, page, size)
 }
 
 export function runAction(key: string, id: number, action: string): ActionResult {

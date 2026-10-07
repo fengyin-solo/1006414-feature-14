@@ -24,6 +24,37 @@
       </span>
     </p>
 
+    <section class="handover-panel">
+      <h3 class="panel-title">炉渣外运交接清单</h3>
+      <p class="handover-summary">
+        <span v-for="item in slagHandover.statusCounts" :key="item.status" class="legend-item">
+          {{ item.status }}：{{ item.count }} 批
+        </span>
+        <span v-if="slagHandover.outOfRangePending > 0" class="legend-item danger">
+          热灼减率超标待处理：{{ slagHandover.outOfRangePending }} 批
+        </span>
+      </p>
+      <table v-if="slagHandover.shipping.length" class="data-table">
+        <thead>
+          <tr>
+            <th>处理编号</th>
+            <th>外运单位</th>
+            <th>运输车号</th>
+            <th>外运状态</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr v-for="item in slagHandover.shipping" :key="item.处理编号">
+            <td>{{ item.处理编号 }}</td>
+            <td>{{ item.外运单位 }}</td>
+            <td>{{ item.运输车号 }}</td>
+            <td>外运中</td>
+          </tr>
+        </tbody>
+      </table>
+      <p v-else class="panel-hint">当前没有在途的炉渣外运车辆。</p>
+    </section>
+
     <form class="filter-bar" @submit.prevent="reload">
       <label v-for="field in filterFields" :key="field" class="filter-item">
         <span>{{ field }}</span>
@@ -79,6 +110,7 @@ import {
   moduleMeta,
   runAction as applyAction,
 } from '@/api/local-service'
+import { slagHandoverSummary, type SlagHandover } from '@/api/slag-service'
 import type { EntryRow } from '@/data/types'
 
 const meta = moduleMeta('shift')
@@ -91,6 +123,7 @@ const rows = ref<EntryRow[]>([])
 const total = ref(0)
 const errorMessage = ref('')
 const filters = ref<Record<string, string>>({})
+const slagHandover = ref<SlagHandover>({ statusCounts: [], outOfRangePending: 0, shipping: [] })
 const filterFields = columns.slice(0, 3)
 const statusSummary = computed(() =>
   statuses.map((status: string) => ({
@@ -128,6 +161,7 @@ function reload() {
     const payload = listEntries(meta.key, filters.value)
     rows.value = payload.items
     total.value = payload.total
+    slagHandover.value = slagHandoverSummary()
   } catch (error) {
     errorMessage.value = error instanceof Error ? error.message : '值班交接班列表读取失败'
   }
